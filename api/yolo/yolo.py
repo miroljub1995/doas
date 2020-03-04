@@ -99,7 +99,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image_clean(self, image):
+    def detect(self, image):
         image = Image.fromarray(image)
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
@@ -122,6 +122,15 @@ class YOLO(object):
                 self.input_image_shape: [image.size[1], image.size[0]],
                 K.learning_phase(): 0
             })
+
+        # print("Before-------------------")
+        # print(out_boxes)
+        for box in out_boxes:
+            box[0], box[1] = box[1], box[0]
+            box[2], box[3] = box[3], box[2]
+        # print("After-------------------")
+        # print(out_boxes)
+
         return (out_boxes, out_scores, out_classes)
 
 def create():
