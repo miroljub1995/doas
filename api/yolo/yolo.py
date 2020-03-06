@@ -135,3 +135,28 @@ class YOLO(object):
 
 def create():
     return YOLO()
+
+def lines_and_obstacles(objs, labels):
+    lines = []
+    obstacles = []
+    for obj in zip(objs, labels):
+        if obj[1] == 0:
+            lines.append(obj[0])
+        else:
+            obstacles.append(obj[0])
+    return [lines, obstacles]
+
+def calculate_goal(lines):
+    left = []
+    right = []
+    if lines[0][0] < lines[1][0] and lines[0][2] < lines[1][3]:
+        left = lines[0]
+        right = lines[1]
+    else:
+        right = lines[0]
+        left = lines[1]
+
+    l_y = (left[1] + left[3]) / 2
+    r_y = (right[1] + right[3]) / 2
+    middle = (int((left[2] + right[0]) / 2), int((l_y + r_y) / 2))
+    return middle

@@ -30,24 +30,4 @@ def main():
     reader.release()
     cv2.destroyAllWindows()
 
-
-class CameraReader1 (threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.cap = cv2.VideoCapture(0)
-        self.running = True
-        self.start()
-
-    def run(self):
-        while self.running:
-            self.cap.grab()
-
-    def read(self, image=None):
-        return self.cap.retrieve(image=image)
-
-    def release(self):
-        self.running = False
-        self.join()
-        self.cap.release()
-
 # main()
