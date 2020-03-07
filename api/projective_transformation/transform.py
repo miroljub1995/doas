@@ -50,6 +50,8 @@ def get_projective_transform(dst_size):
     return m
 
 def get_perspective_coordinates(coords, dst_size):
+    if len(coords) == 0:
+        return coords
     coords = np.reshape(coords, (-1, 1, 2))
     m = get_projective_transform(dst_size)
     dst = cv2.perspectiveTransform(coords, m)

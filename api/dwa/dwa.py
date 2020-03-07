@@ -57,7 +57,7 @@ class Config:
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
         # self.robot_radius = 1.0  # [m] for collision check
-        self.robot_radius = 2.0  # [m] for collision check
+        self.robot_radius = 3.0  # [m] for collision check
 
         # if robot_type == RobotType.rectangle
         self.robot_width = 0.5  # [m] for collision check
@@ -171,6 +171,9 @@ def calc_obstacle_cost(trajectory, ob, config):
     """
         calc obstacle cost inf: collision
     """
+
+    if len(ob) == 0:
+        return 0.0
     ox = ob[:, 0]
     oy = ob[:, 1]
     dx = trajectory[:, 0] - ox[:, None]
