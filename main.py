@@ -9,7 +9,7 @@ import cv2
 import math
 import traceback
 
-perspective_size = (5, 8)
+perspective_size = (500, 800)
 
 
 
@@ -32,17 +32,25 @@ def do_for_frame(img):
 
     if len(lines) == 2:    
         perspective_lines = transform.get_perspective_coordinates(lines, perspective_size)
+        print("Real obs: {}".format(obstacles))
         goal = yolo.calculate_goal(perspective_lines)
         perspective_obstacles = transform.get_perspective_coordinates(obstacles, perspective_size)
-        print("Obs: {}".format(perspective_obstacles))
+        wrapped = transform.get_wrapped_img(img, perspective_size)
+        cv2.imshow('wrapped', wrapped)
+        cv2.waitKey(1)
 
-        test_image = np.zeros((10, 10, 1), dtype=np.uint8)
-        draw(test_image, perspective_obstacles)
+        print("Perspective obs: {}".format(perspective_obstacles))
+        obs_pixels = transform.rects_to_pixels(perspective_obstacles, perspective_size)
+        print("Obs: {}".format(obs_pixels))
+
+        test_image = np.zeros((perspective_size[1], perspective_size[0], 1), dtype=np.uint8)
+        draw(test_image, obs_pixels)
         cv2.imshow('persp', test_image)
+        cv2.waitKey(1)
 
         curr = (2, 10)
         curr_angle = -math.pi / 2.0
-        angle = dwa.calculate_angle(goal, perspective_obstacles, curr)
+        angle = dwa.calculate_angle(goal, obs_pixels, curr)
     
         print("Goal: {}".format(goal))
         print("Angle: {} (from [-1, 1])".format(angle))

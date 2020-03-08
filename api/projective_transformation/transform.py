@@ -62,27 +62,41 @@ def get_wrapped_img(img, dst_size):
     m = get_projective_transform(dst_size)
     return cv2.warpPerspective(img, m, dst_size)
 
-# path = os.path.join(os.path.dirname(__file__), 'images', 'train.jpg')
-# img = cv2.imread(path)
-# # y = yolo.create()
-# # out = y.detect(img)
+def rects_to_pixels(rects, dst_size):
+    bw_img = np.ones((dst_size[1], dst_size[0], 1))
+    for obs in rects:
+        x1, y1, x2, y2 = obs
+        cv2.rectangle(bw_img, (x1, y1), (x2, y2), 0, 1)
+    #cv2.imshow('test', bw_img)
+    #cv2.waitKey(1)
+    pixels = []
+    for i, row in enumerate(bw_img):
+        for j, p in enumerate(row):
+            if p == 0.0:
+                pixels.append((j, i))
+    return pixels
+
+path = os.path.join(os.path.dirname(__file__), 'images', 'train.jpg')
+img = cv2.imread(path)
+# y = yolo.create()
+# out = y.detect(img)
 
 
-# intersec = get_intersection()
-# img = cv2.circle(img, intersec, 3, (0, 255, 0), 2)
+intersec = get_intersection()
+img = cv2.circle(img, intersec, 3, (0, 255, 0), 2)
 
-# trap = generate_trapesoid(intersec)
-# # img = cv2.polylines(img, [np.array(trap).astype(np.int32)], True, (255, 0, 0), 1)
-
-
-# dst_w, dst_h = (300, 500)
-
-# H = cv2.getPerspectiveTransform(np.array(trap, dtype=np.float32), np.array([(0, 0), (0, dst_h), (dst_w, dst_h), (dst_w, 0)], dtype=np.float32))
-
-# print(H)
-# img = cv2.warpPerspective(img, H, (dst_w, dst_h))
+trap = generate_trapesoid(intersec)
+# img = cv2.polylines(img, [np.array(trap).astype(np.int32)], True, (255, 0, 0), 1)
 
 
-# cv2.imshow('img', img)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+dst_w, dst_h = (300, 500)
+
+H = cv2.getPerspectiveTransform(np.array(trap, dtype=np.float32), np.array([(0, 0), (0, dst_h), (dst_w, dst_h), (dst_w, 0)], dtype=np.float32))
+
+print(H)
+img = cv2.warpPerspective(img, H, (dst_w, dst_h))
+
+
+cv2.imshow('img', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
