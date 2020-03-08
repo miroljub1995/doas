@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 from time import time
+import sys
 
 def find_line_coef(p1, p2):
     k1 = (p2[1] - p1[1]) / (p2[0] - p1[0])
@@ -18,21 +19,22 @@ def find_y_on_line(line, x):
     return int(k * x + n)
 
 def generate_trapesoid(intersec):
-    left_edge_line = find_line_coef(intersec, (0, 140))
-    right_edge_line = find_line_coef(intersec, (416, 140))
+    left_edge_line = find_line_coef(intersec, (0, 60))
+    right_edge_line = find_line_coef(intersec, (416, 60))
 
-    p1 = (find_x_on_line(left_edge_line, 130), 130)
+    top_x = 45
+    p1 = (find_x_on_line(left_edge_line, top_x), top_x)
     p2 = (find_x_on_line(left_edge_line, 416), 416)
     p3 = (find_x_on_line(right_edge_line, 416), 416)
-    p4 = (find_x_on_line(right_edge_line, 130), 130)
+    p4 = (find_x_on_line(right_edge_line, top_x), top_x)
 
     return (p1, p2, p3, p4)
 
 def get_intersection():
-    point11 = (14, 400)
-    point12 = (115, 247)
-    point21 = (410, 401)
-    point22 = (306, 249)
+    point11 = (1, 94)
+    point12 = (140, 51)
+    point21 = (271, 48)
+    point22 = (413, 106)
 
     #y = k * x + n
     k1, n1 = find_line_coef(point11, point12)
@@ -76,27 +78,27 @@ def rects_to_pixels(rects, dst_size):
                 pixels.append((j, i))
     return pixels
 
-path = os.path.join(os.path.dirname(__file__), 'images', 'train.jpg')
-img = cv2.imread(path)
-# y = yolo.create()
-# out = y.detect(img)
+# path = os.path.join(os.path.dirname(__file__), 'images', 'img4.jpg')
+# img = cv2.imread(path)
+# cv2.imshow('origin', img)
+# # y = yolo.create()
+# # out = y.detect(img)
 
 
-intersec = get_intersection()
-img = cv2.circle(img, intersec, 3, (0, 255, 0), 2)
+# intersec = get_intersection()
+# img = cv2.circle(img, intersec, 3, (0, 255, 0), 2)
 
-trap = generate_trapesoid(intersec)
-# img = cv2.polylines(img, [np.array(trap).astype(np.int32)], True, (255, 0, 0), 1)
-
-
-dst_w, dst_h = (300, 500)
-
-H = cv2.getPerspectiveTransform(np.array(trap, dtype=np.float32), np.array([(0, 0), (0, dst_h), (dst_w, dst_h), (dst_w, 0)], dtype=np.float32))
-
-print(H)
-img = cv2.warpPerspective(img, H, (dst_w, dst_h))
+# trap = generate_trapesoid(intersec)
+# cv2.polylines(img, [np.array(trap).astype(np.int32)], True, (255, 0, 0), 1)
+# cv2.imshow('polylines', img)
 
 
-cv2.imshow('img', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# dst_w, dst_h = (300, 500)
+# H = cv2.getPerspectiveTransform(np.array(trap, dtype=np.float32), np.array([(0, 0), (0, dst_h), (dst_w, dst_h), (dst_w, 0)], dtype=np.float32))
+
+# print(H)
+# img = cv2.warpPerspective(img, H, (dst_w, dst_h))
+
+# cv2.imshow('perspective', img)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
