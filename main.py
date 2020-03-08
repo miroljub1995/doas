@@ -3,28 +3,30 @@ from api.dwa.dwa import DWA
 from api.yolo import yolo
 from api.projective_transformation import transform
 
+from PIL import Image
+
 import numpy as np
 from time import time
 import cv2
 import math
 import traceback
+import os
 
 perspective_size = (500, 800)
 
-
-
-
-def draw(img, pixels):
+def draw_pixels(img, pixels):
     for pix in pixels:
         x, y = pix
         cv2.circle(img, (x, y), 1, 255, 1)
 
 
-
-
-def do_for_frame(img):
+def do_for_frame(img, obj_detector, dwa):
     img = cv2.resize(img, (416, 416))
-    objs, _, labels = obj_det.detect(img)
+    objs, _, labels = obj_detector.detect(img)
+    objs1, _1, labels1, new_image = obj_detector.detect_image(Image.open(os.path.join('api', 'projective_transformation', 'images', 'img2.jpg')))
+    print(objs)
+    print(objs1)
+    cv2.imshow('new_image', new_image)
     lines, obstacles = yolo.lines_and_obstacles(objs, labels)
     print('*************************')
     print("Lines: {}".format(lines))
@@ -44,7 +46,7 @@ def do_for_frame(img):
         print("Obs: {}".format(obs_pixels))
 
         test_image = np.zeros((perspective_size[1], perspective_size[0], 1), dtype=np.uint8)
-        draw(test_image, obs_pixels)
+        draw_pixels(test_image, obs_pixels)
         cv2.imshow('persp', test_image)
         cv2.waitKey(1)
 
@@ -60,31 +62,44 @@ def do_for_frame(img):
     # get angle from dwa
     # turn wheels left/right according to angle from dwa
     cv2.imshow('img', img)
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
-reader = None
-try:
-    obj_det = yolo.create()
+def main():
+    reader = None
+    try:
+        obj_det = yolo.create()
+        dwa = DWA()
+        reader = CameraReader()
+        # reader = cv2.VideoCapture(0)
+
+        # car initialization here
+
+        while True:
+            start = time()
+            try: # not to brake program if one frame fail
+                ret, img = reader.read()
+                #print("Read time: {}".format(time() - start))
+                do_for_frame(img, obj_det, dwa)
+            except Exception as e:
+                print("Some error occured: {}".format(e))
+                traceback.print_exc()
+                raise e
+            finally:
+                end = time()
+
+            print("Time for frame: {}".format(end - start))
+    finally:
+        if reader != None:
+            reader.release()
+
+
+def test_with_image():
     dwa = DWA()
-    reader = CameraReader()
-    # reader = cv2.VideoCapture(0)
+    obj_det = yolo.create()
+    path = os.path.join('api', 'projective_transformation', 'images', 'img2.jpg')
+    img = cv2.imread(path)
+    do_for_frame(img, obj_det, dwa)
 
-    # car initialization here
+# main()
 
-    while True:
-        start = time()
-        try: # not to brake program if one frame fail
-            ret, img = reader.read()
-            #print("Read time: {}".format(time() - start))
-            do_for_frame(img)
-        except Exception as e:
-            print("Some error occured: {}".format(e))
-            traceback.print_exc()
-            raise e
-        finally:
-            end = time()
-
-        print("Time for frame: {}".format(end - start))
-finally:
-    if reader != None:
-        reader.release()
+test_with_image()
