@@ -6,14 +6,14 @@ Class definition of YOLO_v3 style detection model on image and video
 import colorsys
 import os
 
+import cv2
 import numpy as np
 from keras import backend as K
 from keras.models import load_model
 from keras.layers import Input
-import cv2
+from keras.utils import multi_gpu_model
 
 from api.yolo.yolo3.model import yolo_eval, yolo_body, tiny_yolo_body
-from keras.utils import multi_gpu_model
 
 class YOLO(object):
     _defaults = {
