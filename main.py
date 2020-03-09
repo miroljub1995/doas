@@ -23,10 +23,8 @@ def draw_pixels(img, pixels):
 def do_for_frame(img, obj_detector, dwa):
     img = cv2.resize(img, (416, 416))
     objs, _, labels = obj_detector.detect(img)
-    objs1, _1, labels1, new_image = obj_detector.detect_image(Image.open(os.path.join('api', 'projective_transformation', 'images', 'img2.jpg')))
+    obj_detector.draw(img, [objs, _, labels])
     print(objs)
-    print(objs1)
-    cv2.imshow('new_image', new_image)
     lines, obstacles = yolo.lines_and_obstacles(objs, labels)
     print('*************************')
     print("Lines: {}".format(lines))
