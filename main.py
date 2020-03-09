@@ -1,16 +1,15 @@
+from time import time
+import math
+import traceback
+import os
+
+import cv2
+import numpy as np
+
 from api.camera_reader.reader import CameraReader
 from api.dwa.dwa import DWA
 from api.yolo import yolo
 from api.projective_transformation import transform
-
-from PIL import Image
-
-import numpy as np
-from time import time
-import cv2
-import math
-import traceback
-import os
 
 perspective_size = (500, 800)
 
@@ -60,7 +59,7 @@ def do_for_frame(img, obj_detector, dwa):
     # get angle from dwa
     # turn wheels left/right according to angle from dwa
     cv2.imshow('img', img)
-    cv2.waitKey(0)
+    cv2.waitKey(1)
 
 def main():
     reader = None
@@ -98,6 +97,6 @@ def test_with_image():
     img = cv2.imread(path)
     do_for_frame(img, obj_det, dwa)
 
-# main()
+main()
 
-test_with_image()
+# test_with_image()
