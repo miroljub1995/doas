@@ -5,18 +5,15 @@ Class definition of YOLO_v3 style detection model on image and video
 
 import colorsys
 import os
-from timeit import default_timer as timer
 
+import cv2
 import numpy as np
 from keras import backend as K
 from keras.models import load_model
 from keras.layers import Input
-from PIL import Image, ImageFont, ImageDraw
+from keras.utils import multi_gpu_model
 
 from api.yolo.yolo3.model import yolo_eval, yolo_body, tiny_yolo_body
-from api.yolo.yolo3.utils import letterbox_image
-import os
-from keras.utils import multi_gpu_model
 
 class YOLO(object):
     _defaults = {
@@ -25,7 +22,7 @@ class YOLO(object):
         "classes_path": 'api/yolo/model_data/coco_classes.txt',
         "score" : 0.3,
         "iou" : 0.45,
-        "model_image_size" : (416, 416),
+        "model_image_size" : (416, 416), # (h, w)
         "gpu_num" : 1,
     }
 
@@ -100,18 +97,12 @@ class YOLO(object):
         return boxes, scores, classes
 
     def detect(self, image):
-        image = Image.fromarray(image)
-        if self.model_image_size != (None, None):
-            assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
-            assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
-            boxed_image = letterbox_image(image, tuple(reversed(self.model_image_size)))
-        else:
-            new_image_size = (image.width - (image.width % 32),
-                              image.height - (image.height % 32))
-            boxed_image = letterbox_image(image, new_image_size)
-        image_data = np.array(boxed_image, dtype='float32')
+        shape = (self.model_image_size[0], self.model_image_size[1], 3)
+        assert shape == image.shape, "The shape of image should be: {}, but got: {}".format(shape, image.shape)
 
-        print(image_data.shape)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_data = np.array(image, dtype='float32')
+
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
@@ -119,19 +110,44 @@ class YOLO(object):
             [self.boxes, self.scores, self.classes],
             feed_dict={
                 self.yolo_model.input: image_data,
-                self.input_image_shape: [image.size[1], image.size[0]],
+                self.input_image_shape: [shape[0], shape[1]],
                 K.learning_phase(): 0
             })
 
-        # print("Before-------------------")
-        # print(out_boxes)
         for box in out_boxes:
             box[0], box[1] = box[1], box[0]
             box[2], box[3] = box[3], box[2]
-        # print("After-------------------")
-        # print(out_boxes)
 
         return (out_boxes, out_scores, out_classes)
+
+    def draw(self, image, detection):
+        h, w, _channels = image.shape
+        out_boxes, out_scores, out_classes = detection
+
+        cv_font = cv2.FONT_HERSHEY_SIMPLEX
+        for i, c in reversed(list(enumerate(out_classes))):
+            predicted_class = self.class_names[c]
+            box = out_boxes[i]
+            score = out_scores[i]
+
+            label = '{} {:.2f}'.format(predicted_class, score)
+            cv_label_w, cv_label_h = cv2.getTextSize(label, cv_font, 0.5, 1)[0]
+
+            left, top, right, bottom  = box
+            top = max(0, np.floor(top + 0.5).astype('int32'))
+            left = max(0, np.floor(left + 0.5).astype('int32'))
+            bottom = min(h, np.floor(bottom + 0.5).astype('int32'))
+            right = min(w, np.floor(right + 0.5).astype('int32'))
+            print(label, (left, top), (right, bottom))
+
+            if top - cv_label_h >= 0:
+                text_origin = np.array([left, top - cv_label_h])
+            else:
+                text_origin = np.array([left, top + 1])
+
+            cv2.rectangle(image, (left + i, top + i), (right - i, bottom - i), self.colors[c], 1)
+            cv2.rectangle(image, tuple(text_origin), tuple(text_origin + [cv_label_w, cv_label_h]), self.colors[c], -1)
+            cv2.putText(image, label, tuple(text_origin + [0, cv_label_h]), cv_font, 0.5, (0, 0, 0), 1)
 
 def create():
     return YOLO()
