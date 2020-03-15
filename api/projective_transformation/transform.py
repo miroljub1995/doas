@@ -68,7 +68,8 @@ def rects_to_pixels(rects, dst_size):
     bw_img = np.ones((dst_size[1], dst_size[0], 1))
     for obs in rects:
         x1, y1, x2, y2 = obs
-        cv2.rectangle(bw_img, (x1, y1), (x2, y2), 0, 1)
+        px1, py1, px2, py2 = x1, y2, x2, y2
+        cv2.rectangle(bw_img, (px1, py1), (px2, py2), 0, 1)
     #cv2.imshow('test', bw_img)
     #cv2.waitKey(1)
     pixels = []

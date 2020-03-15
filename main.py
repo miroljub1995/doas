@@ -34,6 +34,7 @@ def do_for_frame(img, obj_detector, dwa):
         print("Real obs: {}".format(obstacles))
         goal = yolo.calculate_goal(perspective_lines)
         perspective_obstacles = transform.get_perspective_coordinates(obstacles, perspective_size)
+        perspective_lines = transform.get_perspective_coordinates(lines, perspective_size)
         wrapped = transform.get_wrapped_img(img, perspective_size)
         cv2.imshow('wrapped', wrapped)
         cv2.waitKey(1)
@@ -43,6 +44,11 @@ def do_for_frame(img, obj_detector, dwa):
         print("Obs: {}".format(obs_pixels))
 
         test_image = np.zeros((perspective_size[1], perspective_size[0], 1), dtype=np.uint8)
+        for line in perspective_lines:
+            x1, y1, x2, y2 = line
+            cv2.rectangle(test_image, (x1, y1), (x2, y2), 255, 1)
+            px1, py1, px2, py2 = int((x1 + x2) // 2), y1, int((x1 + x2) // 2), y2
+            cv2.line(test_image, (px1, py1), (px2, py2), 255, 1)
         draw_pixels(test_image, obs_pixels)
         cv2.imshow('persp', test_image)
         cv2.waitKey(1)
