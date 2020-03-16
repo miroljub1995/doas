@@ -54,10 +54,11 @@ def get_projective_transform(dst_size):
 def get_perspective_coordinates(coords, dst_size):
     if len(coords) == 0:
         return coords
-    coords = np.reshape(coords, (-1, 1, 2))
+    coords = np.asarray(np.reshape(coords, (-1, 1, 2)), dtype=np.float32)
     m = get_projective_transform(dst_size)
     dst = cv2.perspectiveTransform(coords, m)
     dst = np.reshape(dst, (-1, 4))
+    dst = np.array([map(int, row) for row in dst])
     return dst
 
 def get_wrapped_img(img, dst_size):
@@ -72,6 +73,18 @@ def rects_to_pixels(rects, dst_size):
         cv2.rectangle(bw_img, (px1, py1), (px2, py2), 0, 1)
     #cv2.imshow('test', bw_img)
     #cv2.waitKey(1)
+    pixels = []
+    for i, row in enumerate(bw_img):
+        for j, p in enumerate(row):
+            if p == 0.0:
+                pixels.append((j, i))
+    return pixels
+
+def lines_to_pixels(lines, dst_size):
+    bw_img = np.ones((dst_size[1], dst_size[0], 1))
+    for x1, y1, x2, y2 in lines:
+        cv2.rectangle(bw_img, (x1, y1), (x2, y2), 0, 1)
+
     pixels = []
     for i, row in enumerate(bw_img):
         for j, p in enumerate(row):
